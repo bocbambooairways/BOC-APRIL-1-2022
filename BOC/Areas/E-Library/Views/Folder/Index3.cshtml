@@ -1,0 +1,58 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_DeskTop.cshtml";
+}
+
+@using BOC.Areas.E_Library.Models
+@using DevExtreme.AspNet.Mvc
+@model IEnumerable<Doc_Folder_Get>
+<div style="width:90%;margin:auto;margin-top:40px;margin-bottom:40px">
+    <style>
+ .dx-scrollable {
+   width: 100%
+    
+}</style>
+@(Html.DevExtreme().TreeList<Doc_Folder_Get>()
+    .ID("employees")
+    .DataSource(Model)
+    .KeyExpr("ID")
+    .ParentIdExpr("HeadID")
+    .FilterRow(filterRow => filterRow.Visible(true))
+    .Selection(s => s.Mode(SelectionMode.Single)).Paging(m=>m.PageSize(10)).Scrolling(scrolling => scrolling.ColumnRenderingMode(GridColumnRenderingMode.Virtual))
+    .Columns(column => {
+    column.AddFor(m => m.Name).Alignment(HorizontalAlignment.Center).HeaderCellTemplate(@<text>
+                <div>Tên</div><div> Name</div>
+            </text>);
+    column.AddFor(m => m.Description).Alignment(HorizontalAlignment.Center).HeaderCellTemplate(@<text>
+                <div>Mô tả</div><div> Description</div>
+            </text>);
+    column.AddFor(m => m.InputDivision).Alignment(HorizontalAlignment.Center).HeaderCellTemplate(@<text>
+                <div>Đơn vị nhập liệu</div><div> InputDivision</div>
+            </text>);
+   
+       
+    }).OnSelectionChanged("selection_changed")
+    .ColumnAutoWidth(true)
+    .ShowRowLines(true)
+    .ShowBorders(true)
+    .ExpandedRowKeys(new[] { 1 })
+)
+</div>
+
+ <script>
+            function getOrderDay(rowData) {
+            return (new Date(rowData.OrderDate)).getDay();
+            }
+            function selection_changed(selectedItems) {
+           var data = selectedItems.selectedRowsData[0];
+            alert(data.Description)
+            //window.location.href = "/E-Library/Folder/Index?ID="+ data.ISBN
+           if(data) {
+           /* $(".employeeNotes").text(data.Notes);
+            $(".employeePhoto").attr("src", data.Picture);*/
+           
+        }
+    }
+
+        </script>

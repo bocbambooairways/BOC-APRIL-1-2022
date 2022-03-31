@@ -1,0 +1,226 @@
+﻿@using DevExtreme.AspNet.Mvc
+@model BOC.Areas.E_Library.Models.Search;
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_DeskTop.cshtml";
+}
+<style>
+    .textbox{
+        margin-top:5px;
+        margin-bottom:5px
+    }
+    .clearfix-check:after{
+        content:"";
+        display:table;
+        clear:both;
+    }
+    /*.dx-texteditor-input{
+        margin-top:30px;width:100%;height: 2px;
+    }*/
+    .dx-texteditor-input-container{
+        width:100%;
+
+    }
+    .dx-scrollable {
+    width: 100%
+    
+}
+
+
+</style>
+
+@using (Html.BeginForm("SearchResult", "Search", FormMethod.Post)) {
+<h4 style="width:100%;color:red;text-align:center;margin-top:20px;margin-bottom:10px;background-color:white">Tìm kiếm tài liệu / Document search area</h4>
+
+<div style="width:60%;margin-left:auto;margin-right:auto;background-color:white;display:flex;">
+
+    <div style="flex:40%;background-color:white">
+        <div style="margin-top:16px;text-align:center;background-color:white;font-size:17px;white-space:nowrap">Từ khóa / Key search</div>
+         <div style="margin-top:42px;text-align:center;background-color:white;font-size:17px;white-space:nowrap">Ngày phát hành / Publish date</div>
+        <div style="margin-top:40px;text-align:center;background-color:white;font-size:17px;white-space:nowrap">ISBN</div>
+         <div style="margin-top:44px;text-align:center;background-color:white;font-size:17px;white-space:nowrap">Tác giả / Author
+
+</div>
+         <div style="margin-top:42px;text-align:center;background-color:white;font-size:17px;white-space:nowrap">Đơn vị nhập liệu / Input division</div>
+         <div style="margin-top:38px;text-align:center;background-color:white;font-size:17px;white-space:nowrap">Đơn vị phát hành / Issuing unit</div>
+    </div>
+    <div style="flex:60%;background-color:white;padding-top:30px">
+        <input name="KeySearch" type="text" class="form-control" style="margin-top:-20px" />
+        @*<input type="text" class="form-control textbox" style="margin-top:30px" />*@
+        <div style="width:100%;background-color:red;display:flex;margin-top:30px" class="clearfix-check">
+            <div style="width:100%;background-color:white;flex:50%">
+                <div style="float:left; width:98%;margin-left:0px">
+          @* @(Html.DevExtreme().DateBoxFor(m=>m.ReceivedDate)
+                .DisplayFormat("YY, MMM dd")
+                .Value(DateTime.Now)
+            )*@
+             @(Html.DevExtreme().DateBoxFor(m=>m.ReceivedDate)
+                .Type(DateBoxType.Date)
+                .Value(string.Empty)
+            )
+            </div>
+                  @* <input type="text" class="form-control" style="width:98%;float:left;margin-left:0px" />*@
+        </div>
+        <div style="width:100%;background-color:white;flex:50%">
+            <div style="float:right; width:98%;margin-right:0px">
+           @* @(Html.DevExtreme().DateBoxFor(m=>m.PublishDate)
+                .DisplayFormat("YY, MMM dd")
+                .Value(DateTime.Now)
+            )*@
+             @(Html.DevExtreme().DateBoxFor(m=>m.PublishDate)
+                .Type(DateBoxType.Date)
+                .Value(string.Empty)
+            )
+            </div>
+               @*<input type="text" class="form-control" style="width:98%;float:right;margin-right:0px" />*@
+        </div>
+        </div>
+        <input type="text" class="form-control textbox" name ="isdn" style="margin-top:30px" />
+        <input type="text" class="form-control textbox" name ="Author" style="margin-top:30px" />
+       <input type="hidden" name="eLib_Division_List" id="eLib_Division_List" />
+        <input type="hidden" name="eLib_Issue_Department_List" id="eLib_Issue_Department_List" />
+       @* <input type="text" class="form-control textbox" style="margin-top:30px" />*@
+         <div style="margin-top:30px;width:100%;">
+                 @(Html.DevExtreme().DropDownBoxFor(m=>m.DocDivID)
+                
+                .ValueExpr("DocDivID")
+                .DisplayExpr(new JS("gridBox_displayExpr"))
+                .DataSource(d => d.Mvc()
+                    .Controller("Search")
+                    .LoadAction("Get")
+                    .LoadMode(DataSourceLoadMode.Raw)
+                    .Key("DocDivID")
+                )
+                .Placeholder("Select a value...")
+                .ShowClearButton(true)
+                .OnValueChanged("gridBox_valueChanged")
+                .ContentTemplate(new TemplateName("EmbeddedDataGridSingle"))
+            )
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedDataGridSingle")) {
+    @(Html.DevExtreme().DataGrid()
+        .ID("embedded-datagrid")
+        .DataSource(new JS(@"component.getDataSource()"))
+        .Columns(columns => {
+           @* columns.Add().DataField("CompanyName");*@
+            columns.Add().DataField("DivisionCode");
+            columns.Add().DataField("DivisionName");
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Virtual))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"") ? [component.option(""value"")] : []"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                component.option("value", keys);
+                component.close();
+            }
+        </text>)
+    )
+}
+<script>
+    function gridBox_valueChanged(e) {
+        var $dataGrid = $("#embedded-datagrid");
+
+        if ($dataGrid.length) {
+            var dataGrid = $dataGrid.dxDataGrid("instance");
+            dataGrid.selectRows(e.value, false);
+        }
+    }
+
+    function gridBox_displayExpr(item) {
+       document.getElementById("eLib_Division_List").value = item.eLib_Division_List;
+      return  item.DivisionName 
+        //return item && item.DivisionCode + " <" + item.DivisionName + ">";
+         //return item.DocDivID 
+    }
+</script>                
+ </div>
+  <div style="margin-top:30px;width:100%;">
+                 @(Html.DevExtreme().DropDownBoxFor(m=>m.PublishID)
+                .ValueExpr("PublishID")
+                .DisplayExpr(new JS("gridBox_displayExpr1"))
+                .DataSource(d => d.Mvc()
+                    .Controller("Search")
+                    .LoadAction("GetIssue")
+                    .LoadMode(DataSourceLoadMode.Raw)
+                    .Key("PublishID")
+                )
+                .Placeholder("Select a value...")
+                .ShowClearButton(true)
+                .OnValueChanged("gridBox_valueChanged")
+                .ContentTemplate(new TemplateName("EmbeddedDataGridSingle1"))
+            )
+
+@using(Html.DevExtreme().NamedTemplate("EmbeddedDataGridSingle1")) {
+    @(Html.DevExtreme().DataGrid()
+        .ID("embedded-datagrid1")
+        .DataSource(new JS(@"component.getDataSource()"))
+        .Columns(columns => {
+           @* columns.Add().DataField("CompanyName");*@
+            columns.Add().DataField("PublishCode");
+            columns.Add().DataField("PublishName");
+        })
+        .HoverStateEnabled(true)
+        .Paging(p => p.PageSize(10))
+        .FilterRow(f => f.Visible(true))
+        .Scrolling(s => s.Mode(GridScrollingMode.Virtual))
+        .Height(345)
+        .Selection(s => s.Mode(SelectionMode.Single))
+        .SelectedRowKeys(new JS(@"component.option(""value"") ? [component.option(""value"")] : []"))
+        .OnSelectionChanged(@<text>
+            function(selectedItems) {
+                var keys = selectedItems.selectedRowKeys;
+                component.option("value", keys);
+                component.close();
+            }
+        </text>)
+    )
+}
+<script>
+    function gridBox_valueChanged(e) {
+        var $dataGrid = $("#embedded-datagrid1");
+
+        if ($dataGrid.length) {
+            var dataGrid = $dataGrid.dxDataGrid("instance");
+            dataGrid.selectRows(e.value, false);
+
+        }
+    }
+
+    function gridBox_displayExpr1(item) {
+         document.getElementById("eLib_Issue_Department_List").value = item.eLib_Issue_Department_List;
+      return  item.PublishName 
+        //return item && item.DivisionCode + " <" + item.DivisionName + ">";
+         //return item.DocDivID 
+    }
+
+</script>
+       
+         </div>
+      <div style="width:100%;background-color:white" class="clearfix-check">
+        <div class="form-check" style="margin-top:30px">
+         @Html.CheckBoxFor(m => m.CheckRead, new {@class="form-check-input",@checked = "checked"})
+      <label class="form-check-label" for="check2">Chưa đọc / Unread</label>
+    </div>
+
+    <div class="form-check" style="margin-top:20px" >
+     @Html.CheckBoxFor(m => m.CheckNews, new {@class="form-check-input"})
+      <label class="form-check-label" for="check2">Mới nhất (trong vòng 30 ngày gần đây) /
+
+Newest (from 30 days or earlier)</label>
+   </div>
+      </div>
+       <input type="submit"  value="Tìm Kiếm / Search" class="btn btn-primary" style="float:right;margin-top:20px;margin-right:0px;background-color:#4682B4;border-radius:10px;padding:10px" />
+    </div>
+</div>
+}
+
+
+
+
